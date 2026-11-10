@@ -1,0 +1,418 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>SuRe — Transfer the Style, Not the Semantics</title>
+<meta name="description" content="SuRe: a training-free, plug-and-play key–value regulation framework that mitigates semantic leakage in image-guided stylization on SD1.5, SDXL, SD3 and FLUX.1-dev." />
+<meta property="og:title" content="SuRe — Transfer the Style, Not the Semantics" />
+<meta property="og:description" content="Mitigating semantic leakage in image-guided stylization by regulating key–value coupling inside diffusion self-attention." />
+<meta property="og:image" content="assets/img/teaser.jpg" />
+<meta property="og:type" content="website" />
+<link rel="icon" href="assets/img/logo.png" />
+<link rel="stylesheet" href="assets/vendor/katex/katex.min.css" />
+<link rel="stylesheet" href="assets/css/style.css?v=5" />
+</head>
+<body>
+<div class="scroll-progress" id="scrollProgress" aria-hidden="true"></div>
+
+<header class="nav" id="nav">
+  <div class="wrap nav-inner">
+    <a class="nav-brand" href="#top">
+      <img src="assets/img/logo.png" alt="SuRe logo"  width="288" height="288"/>
+      <span>SuRe</span>
+    </a>
+    <span class="nav-unis" aria-label="Affiliations">
+      <img src="assets/img/uni-thu.png?v=2" alt="Tsinghua University" title="Tsinghua University"  width="96" height="96"/>
+      <img src="assets/img/uni-dut.png?v=2" alt="Dalian University of Technology" title="Dalian University of Technology"  width="96" height="96"/>
+      <img src="assets/img/uni-pku.png?v=2" alt="Peking University" title="Peking University"  width="96" height="96"/>
+    </span>
+    <nav class="nav-links">
+      <a href="#idea">Idea</a>
+      <a href="#method">Method</a>
+      <a href="#results">Results</a>
+      <a href="#multi">Multi-style</a>
+      <a href="#ablation">Ablations</a>
+      <a href="#citation">Citation</a>
+    </nav>
+    <a class="btn btn-primary" href="https://arxiv.org/abs/2511.06365" target="_blank" rel="noopener">Paper</a>
+    <a class="btn" href="https://github.com/XinR-Tang/SuRe" target="_blank" rel="noopener">Code</a>
+  </div>
+</header>
+
+<main id="top">
+
+  <!-- ================= HERO ================= -->
+  <section class="hero">
+    <div class="wrap hero-inner">
+      <h1 class="title">
+        Transfer the Style,<br /><span class="grad-text">Not the Semantics</span>
+      </h1>
+      <p class="subtitle">Mitigating Semantic Leakage in Image-Guided Stylization</p>
+      <p class="tagline">
+        Training-free, plug-and-play on SD1.5, SDXL, SD3 and FLUX.1-dev — regulating key–value coupling in self-attention.
+      </p>
+
+      <div class="authors">
+        Haojun Tang<sup>1,2,*,†</sup><span class="sep">·</span>Qiwei Lin<sup>3,*</sup><span class="sep">·</span>Tongda Xu<sup>1,*</sup><br />
+        Wenda Zhao<sup>2,@</sup><span class="sep">·</span>Yian Zhao<sup>4</sup><span class="sep">·</span>Yu Zhang<sup>2</sup><span class="sep">·</span>Lida Huang<sup>1</sup><span class="sep">·</span>Yan Wang<sup>1,@</sup>
+      </div>
+      <div class="affils affils-col">
+        <span><sup>1</sup> Institute for AI Industry Research (AIR), Tsinghua University</span>
+        <span><sup>2</sup> Dalian University of Technology</span>
+        <span><sup>3</sup> Beijing Institute of Radio Measurement</span>
+        <span><sup>4</sup> Peking University</span>
+      </div>
+      <div class="notes">* Equal contribution &nbsp;·&nbsp; @ Corresponding authors &nbsp;·&nbsp; † Work done by Haojun Tang as a student researcher at AIR.</div>
+
+      <div class="cta">
+        <a class="btn btn-primary" href="https://arxiv.org/abs/2511.06365" target="_blank" rel="noopener">Read the paper</a>
+        <a class="btn" href="https://github.com/XinR-Tang/SuRe" target="_blank" rel="noopener">Code &amp; models</a>
+        <a class="btn" href="#citation">Cite</a>
+      </div>
+
+      <figure class="fig hero-figure reveal">
+        <img src="assets/img/teaser.jpg" fetchpriority="high" alt="Teaser: SuRe compared with state-of-the-art zero-shot image-guided stylization methods, and extended to few style images."  width="2400" height="1016"/>
+        <figcaption>
+          <b>Teaser of SuRe.</b> (a) Compared with SOTA zero-shot image-guided stylization methods, SuRe better mitigates
+          semantic leakage while preserving content structure and target style. (b) SuRe naturally extends to stylization
+          with few style reference images.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ================= ABSTRACT ================= -->
+  <section class="wrap abstract-band reveal">
+    <h2 class="abstract-title">Abstract</h2>
+    <p>
+      Image-guided zero-shot style transfer enables training-free stylization of arbitrary content images using a reference
+      style. Despite recent progress, existing methods commonly rely on self-attention manipulation to inject style
+      information, which may transfer semantic content from the style image, leading to semantic leakage. In this work, we
+      revisit this phenomenon from the perspective of key–value coupling in the self-attention of diffusion models. Our
+      analysis shows that the native correspondence between style keys and values plays an important role in transferring
+      semantic information from the style image. Motivated by this observation, we propose SuRe, a timestep-aware key–value
+      regulation framework that mitigates semantic leakage by disrupting the native key–value correspondence while
+      progressively restoring it for faithful style transfer. Specifically, we present value shuffle to decouple style keys
+      and values while preserving the empirical distribution of the values, together with a progressive recoupling mechanism
+      that gradually recouples them throughout the stylization process. Experiments against 18 representative methods
+      demonstrate that SuRe maintains competitive style similarity while consistently improving content similarity across
+      SD1.5, SDXL, SD3, and FLUX.1-dev, with natural generalization to multi-style transfer.
+    </p>
+  </section>
+
+  <!-- ================= STATS ================= -->
+  <section class="wrap stats">
+    <div class="stat"><b class="grad-text">18</b><span>representative baselines</span></div>
+    <div class="stat"><b class="grad-text">4</b><span>diffusion backbones</span></div>
+    <div class="stat"><b class="grad-text">800</b><span>benchmark stylizations</span></div>
+    <div class="stat"><b class="grad-text">6</b><span>content / style metrics</span></div>
+  </section>
+
+  <!-- ================= 01 IDEA ================= -->
+  <section class="block" id="idea">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="kicker"><i>01</i> Core idea</div>
+        <h2 class="section-title">The style key decides <em>where</em> to look.<br />The paired value decides <em>what</em> transfers.</h2>
+        <p class="section-lead">
+          For the \(i\)-th content query \(Q_c^i\), the style key \(K_s^j\) determines how strongly the corresponding
+          value \(V_s^j\) is attended to, while \(V_s^j\) determines what information is transferred to location \(i\). Since each style key is inherently paired with its value at
+          the same spatial location, a strong query–key match drags in the style image's objects and layout together with
+          its appearance. SuRe breaks that pairing — and then carefully restores it.
+        </p>
+      </div>
+
+      <div class="grid grid-3">
+        <article class="card reveal">
+          <span class="tag">Symptom</span>
+          <h3>Semantic leakage</h3>
+          <p>
+            Style transfer should change how an image looks, not what it depicts. However, existing attention-based methods
+            often copy semantic content from the style reference, introducing unwanted objects or structures into the
+            stylized image.
+          </p>
+        </article>
+        <article class="card reveal">
+          <span class="tag">Diagnosis</span>
+          <h3>It is the K–V coupling</h3>
+          <p>
+            In self-attention, style keys determine where content queries attend, while style values provide the information
+            transferred. Since keys and values are spatially paired, their coupling allows semantic structures from the style
+            reference to leak into the generated image.
+          </p>
+        </article>
+        <article class="card reveal">
+          <span class="tag">Remedy</span>
+          <h3>Uncouple, then recouple</h3>
+          <p>
+            <strong>V-Shuffle</strong> rearranges style values to break their spatial association with keys, reducing semantic
+            leakage while preserving the value distribution. <strong>PRM</strong> then progressively restores the original
+            correspondence during sampling to recover richer stylistic details.
+          </p>
+        </article>
+      </div>
+
+      <figure class="fig reveal">
+        <img loading="lazy" src="assets/img/visual.jpg" alt="Qualitative comparison of three key–value configurations on the same content/style pair."  width="1600" height="945"/>
+        <figcaption>
+          <b>Why K–V pairing matters.</b> Both native K–V pairing and joint K–V reordering preserve semantic leakage from the
+          style reference. In contrast, reordering only the values suppresses semantic leakage but weakens style transfer,
+          revealing the key trade-off that SuRe aims to resolve.
+        </figcaption>
+      </figure>
+
+      <figure class="fig reveal">
+        <img loading="lazy" src="assets/img/LR.png" alt="Linear probing of attention outputs under the three key–value configurations."  width="1408" height="579"/>
+        <figcaption>
+          <b>Linear probing evidence.</b> Attention outputs under native pairing and joint reordering reach nearly identical
+          pixel accuracy and mIoU; value-only reordering drops both, showing that the coupling is what encodes style semantics.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ================= 02 METHOD ================= -->
+  <section class="block" id="method">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="kicker"><i>02</i> Method</div>
+        <h2 class="section-title">A timestep-aware schedule over the key–value correspondence.</h2>
+        <p class="section-lead">
+          SuRe never touches the pretrained weights. It only rewrites the attention target used to optimise a single
+          stylized latent, which is why it transfers to any latent diffusion backbone.
+        </p>
+      </div>
+
+      <figure class="fig reveal">
+        <img loading="lazy" src="assets/img/method.png" alt="Overview of SuRe: V-Shuffle permutes style values while PRM progressively recouples them."  width="1600" height="598"/>
+        <figcaption>
+          <b>Overview.</b> Content and style images are encoded into latents. V-Shuffle permutes the style value tokens while
+          keeping the style keys fixed. PRM then blends the shuffled and native attention targets over the sampling trajectory.
+        </figcaption>
+      </figure>
+
+      <div class="grid grid-2">
+        <article class="card reveal">
+          <span class="tag">Step 1</span>
+          <h3>V-Shuffle: break the correspondence, keep the distribution</h3>
+          <p>
+            Style values are randomly permuted along the spatial dimension while the keys stay untouched. Colour statistics
+            and texture priors survive; the one-to-one semantic association does not. Several independent permutations
+            average out, giving an unbiased Monte-Carlo estimate of the shuffled target.
+          </p>
+          <div class="eq">$$\tilde{V}_s^{t,(i)} = P_l^{t,(i)} \cdot V_s^{t}, \qquad i = 1, \dots, m$$</div>
+        </article>
+        <article class="card reveal">
+          <span class="tag">Step 2</span>
+          <h3>PRM: recouple on a cosine schedule</h3>
+          <p>
+            Coarse layout is established early, high-frequency brushwork late. PRM therefore keeps strong uncoupling at
+            early timesteps and gradually returns to the native target, with a content-side regulariser that stops the
+            queries from drifting.
+          </p>
+          <div class="eq">$$\alpha_t = \frac{1}{2}\left[1 + \cos\left(\frac{\pi t}{T}\right)\right]$$</div>
+        </article>
+      </div>
+
+      <figure class="fig reveal">
+        <img loading="lazy" src="assets/img/PCA.jpg" alt="PCA visualisation of style values across timesteps."  width="1600" height="631"/>
+        <figcaption>
+          <b>Why the schedule is time-dependent.</b> PCA of style values extracted at different timesteps: coarse semantic
+          layouts appear in the first 30% of sampling, while high-frequency stylistic patterns only emerge in the last 30%.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ================= 03 RESULTS ================= -->
+  <section class="block" id="results">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="kicker"><i>03</i> Results</div>
+        <h2 class="section-title">One formulation, four backbones.</h2>
+        <p class="section-lead">
+          On the standard benchmark (20 MS-COCO content images × 40 WikiArt style images, 800 outputs), SuRe improves
+          content similarity over 18 baselines while keeping style similarity competitive — and the same hyper-parameter
+          recipe carries over to SDXL, SD3 and FLUX.1-dev.
+        </p>
+      </div>
+
+      <figure class="fig reveal">
+        <img loading="lazy" src="assets/img/backbones.jpg" alt="SuRe results on five content/style pairs across SD1.5, SDXL, SD3 and FLUX.1-dev."  width="2000" height="1736"/>
+        <figcaption>
+          <b>Across backbones.</b> Five content/style pairs, stylized by SuRe on SD1.5, SDXL, SD3 and FLUX.1-dev. Only the
+          resolution and the self-attention layer range change between backbones.
+        </figcaption>
+      </figure>
+
+      <div class="table-wrap reveal">
+        <table>
+          <thead>
+            <tr>
+              <th>Backbone</th>
+              <th class="num">Resolution</th>
+              <th class="num">Self-attn. layers</th>
+              <th class="num">lr</th>
+              <th class="num">β</th>
+              <th class="num">m</th>
+              <th class="num">Steps</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr><td>SD1.5</td><td class="num">512 × 512</td><td class="num">10–16</td><td class="num">0.05</td><td class="num">0.24</td><td class="num">5</td><td class="num">200</td></tr>
+            <tr><td>SDXL</td><td class="num">1024 × 1024</td><td class="num">50–57</td><td class="num">0.02</td><td class="num">0.30</td><td class="num">5</td><td class="num">200</td></tr>
+            <tr><td>SD3</td><td class="num">512 × 512</td><td class="num">17–23</td><td class="num">0.015</td><td class="num">0.22</td><td class="num">5</td><td class="num">200</td></tr>
+            <tr><td>FLUX.1-dev</td><td class="num">512 × 512</td><td class="num">50–57</td><td class="num">0.02</td><td class="num">0.25</td><td class="num">5</td><td class="num">200</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <p class="table-note">
+        Per-backbone defaults; all of them are overridable from the command line. On SD1.5, SuRe reaches
+        <b>21.71 ArtFID</b>, <b>13.83 FID</b>, <b>0.4620 LPIPS</b> and <b>0.6459 DINOv2</b>.
+      </p>
+
+      <figure class="fig fig-wide reveal">
+        <img loading="lazy" src="assets/img/comparison1.jpg" alt="Comparison with feed-forward stylization methods."  width="1729" height="337"/>
+        <figcaption><b>Against feed-forward methods</b> (AesPA-Net, EFDM, CAST, StyTR<sup>2</sup>, AdaAttN, MAST, AdaIN). Existing methods drift in colour or structure; SuRe keeps both.</figcaption>
+      </figure>
+
+      <figure class="fig fig-wide reveal">
+        <img loading="lazy" src="assets/img/comparison2.jpg" alt="Comparison with diffusion attention methods."  width="1823" height="424"/>
+        <figcaption><b>Against diffusion attention methods</b> (CoCoDiff, ACID-Style, StyleGallery, StyleSSP, AD, StyleID). These still leak reference semantics to varying degrees; SuRe preserves faces and limbs.</figcaption>
+      </figure>
+
+      <figure class="fig fig-narrow reveal">
+        <img loading="lazy" src="assets/img/comparison3.jpg" alt="Comparison with diffusion adaptation methods."  width="593" height="523"/>
+        <figcaption><b>Against diffusion adaptation methods</b> (AnyStyle, OmniStyle, K-LoRA, InstantStyle, InST), which tend to hallucinate layout changes.</figcaption>
+      </figure>
+
+      <figure class="fig reveal">
+        <img loading="lazy" src="assets/img/modes.jpg" alt="Comparison of the three key–value coupling modes."  width="1700" height="781"/>
+        <figcaption>
+          <b>Effect of the coupling mode.</b> Keeping the native pairing (<code>without_shuffle</code>) leaks the reference scene;
+          permuting values alone (<code>only_shuffle</code>) keeps colours but weakens the style; the cosine schedule
+          (<code>cos_weight</code>, the default) relieves the leak while retaining the style.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ================= 04 MULTI-STYLE ================= -->
+  <section class="block" id="multi">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="kicker"><i>04</i> Multi-style transfer</div>
+        <h2 class="section-title">More references, less leakage.</h2>
+        <p class="section-lead">
+          Passing a folder of references is enough: their keys and values are concatenated along the token dimension, so
+          the model transfers domain-level style rather than the content of any single image.
+        </p>
+      </div>
+
+      <figure class="fig reveal">
+        <img loading="lazy" src="assets/img/multi.jpg" alt="Qualitative comparison with different numbers of style images."  width="1600" height="910"/>
+        <figcaption>
+          <b>Few-style stylization.</b> Going from one to several references of the same style domain reduces remaining
+          semantic leakage while keeping the shared palette and brushwork.
+        </figcaption>
+      </figure>
+    </div>
+  </section>
+
+  <!-- ================= 05 ABLATIONS ================= -->
+  <section class="block" id="ablation">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="kicker"><i>05</i> Ablations</div>
+        <h2 class="section-title">Each control does real work.</h2>
+      </div>
+
+      <div class="grid grid-2">
+        <figure class="fig reveal" style="margin-top:0">
+          <img loading="lazy" src="assets/img/ablation2.jpg" alt="Ablation on the shuffle dimension."  width="1600" height="1187"/>
+          <figcaption><b>Shuffle dimension.</b> Shuffling along the spatial dimension suppresses leakage while preserving style cues.</figcaption>
+        </figure>
+        <figure class="fig reveal" style="margin-top:0">
+          <img loading="lazy" src="assets/img/ablation1.jpg" alt="Component ablation of V-Shuffle and PRM."  width="1600" height="1360"/>
+          <figcaption><b>Components.</b> V-Shuffle removes leakage and preserves colours; PRM restores the high-frequency stylistic texture.</figcaption>
+        </figure>
+      </div>
+
+      <div class="grid grid-2">
+<figure class="fig reveal" style="margin-top:0">
+        <img loading="lazy" src="assets/img/ablation3.png" alt="Pareto curves for different beta values and for the two injection strategies."  width="927" height="587"/>
+        <figcaption>
+          <b>Ablation on different β and injection strategies.</b> β controls the trade-off between the style loss
+          \(\mathcal{L}_s\) and the content loss \(\mathcal{L}_c\). (a) Across β values the SuRe curve stays in the
+          lower-left region relative to the baselines, i.e. lower ArtFID and lower LPIPS at the same time, which indicates a
+          better content–style Pareto frontier. (b) Compared with constant weighting, the cosine schedule dominates under every
+          β, confirming that the time-aware recoupling matters rather than the mere mixing of the two targets.
+        </figcaption>
+      </figure>
+
+      <figure class="fig reveal" style="margin-top:0">
+        <img loading="lazy" src="assets/img/ablation4.jpg" alt="Visual comparison of constant weighting, direct replacement and SuRe."  width="1600" height="941"/>
+        <figcaption>
+          <b>Visual comparison of different injection strategies.</b> Constant weighting (COW) fixes \(\alpha_t = 0.5\) and
+          stylizes weakly because it ignores the sampling trajectory; direct replacement (DR) replaces the attention target with
+          the shuffled one, so it mainly transfers colour distributions and preserves little structure. SuRe keeps the loss-based
+          optimization, where the content loss constrains the semantic structure while PRM progressively regulates the style,
+          yielding more natural and visually pleasing results.
+        </figcaption>
+      </figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 06 CITATION ================= -->
+  <section class="block" id="citation">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <div class="kicker"><i>06</i> Citation</div>
+        <h2 class="section-title">If SuRe is useful for your work…</h2>
+      </div>
+
+      <div class="cite-card reveal">
+        <button class="copy-btn" id="copyBtn" type="button">Copy</button>
+        <pre id="bibtex">@article{tang2025sure,
+  title   = {Transfer the Style, Not the Semantics: Mitigating Semantic Leakage in Image-Guided Stylization},
+  author  = {Tang, Haojun and Lin, Qiwei and Xu, Tongda and Zhao, Wenda and Zhao, Yian and Zhang, Yu and Huang, Lida and Wang, Yan},
+  journal = {arXiv preprint arXiv:2511.06365},
+  year    = {2025}
+}</pre>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  <div class="wrap footer-inner">
+    <div>© 2026 SuRe · Institute for AI Industry Research (AIR), Tsinghua University</div>
+    <div class="footer-links">
+      <a href="https://arxiv.org/abs/2511.06365" target="_blank" rel="noopener">Paper</a>
+      <a href="https://github.com/XinR-Tang/SuRe" target="_blank" rel="noopener">Code</a>
+      <a href="#top">Back to top</a>
+    </div>
+  </div>
+</footer>
+
+<script defer src="assets/vendor/katex/katex.min.js"></script>
+<script defer src="assets/vendor/katex/auto-render.min.js"></script>
+<script defer src="assets/js/main.js?v=5"></script>
+<script>
+  document.addEventListener("DOMContentLoaded", function () {
+    if (window.renderMathInElement) {
+      renderMathInElement(document.body, {
+        delimiters: [
+          { left: "$$", right: "$$", display: true },
+          { left: "\\(", right: "\\)", display: false }
+        ],
+        throwOnError: false
+      });
+    }
+  });
+</script>
+</body>
+</html>
